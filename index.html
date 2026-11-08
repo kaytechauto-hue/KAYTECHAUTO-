@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#111c27"><title>KAYTECHAUTO Cloud Workshop</title>
+<style>
+:root{--nav:#111c27;--gold:#f3a712;--bg:#f2f5f8;--ink:#192630;--muted:#687987;--line:#dce4ea}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#edf1f5 0,#f7f8fa 240px);color:var(--ink);font:14px/1.5 system-ui,Segoe UI,Arial}
+header{background:linear-gradient(115deg,#101923,#243647);color:white;padding:19px 22px;box-shadow:0 5px 18px #10192322;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.brand{font-size:22px;font-weight:950;letter-spacing:1px}.brand b{color:var(--gold)}header small{color:#c5d0d9}
+main{max-width:1120px;margin:22px auto;padding:0 15px}.panel,.card{background:white;border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:15px;box-shadow:0 5px 18px #1b2a3810}
+h1{font-size:24px;margin:0 0 5px}h2{font-size:18px;margin:0 0 12px}.muted{color:var(--muted);font-size:12px}
+nav{display:flex;gap:7px;overflow:auto;background:#1c2b39;padding:10px 14px;box-shadow:0 3px 12px #10192320}nav button{background:none;color:#e2e9ee;border:0;padding:9px 12px;border-radius:8px;white-space:nowrap}nav button.active{background:var(--gold);color:#17232c}
+button{cursor:pointer;border:0;border-radius:8px;padding:10px 13px;font-weight:750;background:var(--nav);color:white}button.primary{background:linear-gradient(135deg,#f6bd45,#e99a08);color:#17232c;box-shadow:0 2px 7px #d58c1530}button.light{background:#e8eef3;color:#263440}button.danger{background:#fae9e8;color:#a52f2a}
+input,select,textarea{width:100%;padding:10px;border:1px solid #cbd5de;border-radius:8px;font:inherit;background:white}textarea{min-height:72px}label{display:block;font-weight:750;font-size:12px;margin:9px 0 4px}.formgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:9px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.view{display:none}.view.active{display:block}.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:9px;background:white}table{border-collapse:collapse;width:100%}th,td{text-align:left;padding:10px;border-bottom:1px solid var(--line);font-size:13px}th{color:var(--muted);font-size:11px;text-transform:uppercase}.status{background:#edf2f6;border-radius:20px;padding:3px 8px;font-size:11px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}.metric{font-size:30px;font-weight:900;letter-spacing:-.7px;color:#172a3a}.hidden{display:none!important}.notice{padding:11px;background:#fff6e5;border:1px solid #efd69d;border-radius:8px;color:#684e16;font-size:12px;margin:12px 0}
+#auth{max-width:480px;margin:8vh auto}.error{color:#a52f2a}.success{color:#13784f}
+@media(max-width:600px){header{padding:14px}main{margin:14px auto}nav button{font-size:12px;padding:8px}}
+</style>
+</head>
+<body>
+<header><div><div class="brand">KAYTECH<b>AUTO</b></div><small>Cloud Workshop Management</small></div><div id="userArea" class="muted"></div></header>
+<div id="auth" class="panel">
+<h1>Welcome to KAYTECHAUTO</h1><p class="muted">Sign in to your workshop workspace, or create a new workshop account.</p>
+<div class="formgrid"><div><label>Email</label><input id="email" type="email" autocomplete="email" placeholder="you@example.com"></div><div><label>Password</label><input id="password" type="password" autocomplete="current-password" placeholder="At least 8 characters"></div></div>
+<div id="signupFields" class="hidden"><label>Workshop name</label><input id="workshopName" placeholder="e.g. KAYTECHAUTO Lagos"></div>
+<div class="actions"><button class="primary" id="signIn">Sign in</button><button class="light" id="showSignup">Create workshop account</button><button class="light hidden" id="signUp">Create account</button></div><p id="authMsg" class="muted"></p>
+<div class="notice">First-time setup: configure your Supabase URL and public anon key in <b>config.js</b>, then run the database SQL included in this package. Never put a service-role key in this app.</div>
+</div>
+<div id="app" class="hidden">
+<nav><button class="active" data-view="dashboard">Dashboard</button><button data-view="jobs">Job cards</button><button data-view="customers">Customers</button><button data-view="stock">Parts & stock</button><button data-view="invoices">Invoices</button><button data-view="reports">Reports</button><button data-view="troubleshoot">Troubleshooting</button><button data-view="settings">Workspace</button></nav>
+<main>
+<section id="dashboard" class="view active"><h1>Workshop dashboard</h1><p class="muted">Shared live records for authorised members of this workshop.</p><div class="grid"><div class="card"><div class="muted">Job cards</div><div class="metric" id="countJobs">0</div></div><div class="card"><div class="muted">Active jobs</div><div class="metric" id="countActive">0</div></div><div class="card"><div class="muted">Customers</div><div class="metric" id="countCustomers">0</div></div><div class="card"><div class="muted">Stock items</div><div class="metric" id="countStock">0</div></div></div><div class="panel"><h2>Recent jobs</h2><div id="recent"></div></div></section>
+<section id="jobs" class="view"><h1>Job cards</h1><div class="panel"><h2>Create job card</h2><form id="jobForm"><div class="formgrid"><div><label>Job number *</label><input id="jobNo" required></div><div><label>Date</label><input id="jobDate" type="date" required></div><div><label>Customer name *</label><input id="jobCustomer" required></div><div><label>Customer phone</label><input id="jobPhone"></div><div><label>Vehicle make/model *</label><input id="jobVehicle" required></div><div><label>Registration</label><input id="jobReg"></div><div><label>Odometer km</label><input id="jobOdo" type="number"></div><div><label>Technician</label><input id="jobTech"></div><div><label>Status</label><select id="jobStatus"><option>Received</option><option>In Progress</option><option>Awaiting Parts</option><option>Awaiting Inspection</option><option>Completed</option><option>Delivered</option></select></div></div><label>Customer complaint *</label><textarea id="jobComplaint" required></textarea><label>Inspection findings</label><textarea id="jobFindings"></textarea><label>Work performed / recommended</label><textarea id="jobWork"></textarea><div class="actions"><button class="primary">Save job card</button></div></form></div><div class="panel"><h2>Workshop job register</h2><div class="tablewrap"><table><thead><tr><th>Job</th><th>Customer / vehicle</th><th>Complaint</th><th>Status</th><th></th></tr></thead><tbody id="jobsRows"></tbody></table></div></div></section>
+<section id="customers" class="view"><h1>Customers</h1><div class="panel"><form id="customerForm"><div class="formgrid"><div><label>Name *</label><input id="custName" required></div><div><label>Phone</label><input id="custPhone"></div><div><label>Email</label><input id="custEmail" type="email"></div><div><label>Address</label><input id="custAddress"></div></div><div class="actions"><button class="primary">Save customer</button></div></form></div><div class="panel"><div class="tablewrap"><table><thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Address</th></tr></thead><tbody id="customersRows"></tbody></table></div></div></section>
+<section id="stock" class="view"><h1>Parts & stock management</h1><div class="panel"><form id="stockForm"><div class="formgrid"><div><label>Part name *</label><input id="partName" required></div><div><label>Part number / SKU</label><input id="partSku"></div><div><label>Quantity *</label><input id="partQty" type="number" min="0" required></div><div><label>Cost price (NGN)</label><input id="partCost" type="number" min="0"></div><div><label>Selling price (NGN)</label><input id="partPrice" type="number" min="0"></div><div><label>Supplier</label><input id="partSupplier"></div></div><div class="actions"><button class="primary">Save stock item</button></div></form></div><div class="panel"><div class="tablewrap"><table><thead><tr><th>Part</th><th>SKU</th><th>Qty</th><th>Cost</th><th>Price</th><th>Supplier</th></tr></thead><tbody id="stockRows"></tbody></table></div></div></section>
+<section id="invoices" class="view"><h1>Invoices & payments</h1><div class="panel"><form id="invoiceForm"><div class="formgrid"><div><label>Invoice number *</label><input id="invNo" required></div><div><label>Customer *</label><input id="invCustomer" required></div><div><label>Job number</label><input id="invJob"></div><div><label>Invoice date</label><input id="invDate" type="date" required></div><div><label>Labour charge (NGN)</label><input id="invLabour" type="number" min="0" value="0"></div><div><label>Parts charge (NGN)</label><input id="invParts" type="number" min="0" value="0"></div><div><label>Discount (NGN)</label><input id="invDiscount" type="number" min="0" value="0"></div><div><label>Amount paid (NGN)</label><input id="invPaid" type="number" min="0" value="0"></div><div><label>Payment method</label><select id="invMethod"><option>Cash</option><option>Bank transfer</option><option>POS</option><option>Other</option></select></div></div><div class="actions"><button class="primary">Save invoice</button></div></form></div><div class="panel"><div class="tablewrap"><table><thead><tr><th>Invoice</th><th>Customer</th><th>Date</th><th>Total</th><th>Paid</th><th>Balance</th></tr></thead><tbody id="invoicesRows"></tbody></table></div></div></section>
+<section id="reports" class="view"><h1>Workshop reports</h1><div class="grid"><div class="card"><div class="muted">Invoice total</div><div class="metric" id="reportTotal">₦0</div></div><div class="card"><div class="muted">Payments received</div><div class="metric" id="reportPaid">₦0</div></div><div class="card"><div class="muted">Outstanding balance</div><div class="metric" id="reportBalance">₦0</div></div></div><div class="panel"><h2>Job status summary</h2><div id="statusSummary"></div></div></section>
+<section id="troubleshoot" class="view"><h1>Vehicle troubleshooting notes</h1><div class="panel"><form id="troubleForm"><div class="formgrid"><div><label>Vehicle</label><input id="trVehicle" required></div><div><label>Symptom</label><input id="trSymptom" required></div><div><label>Likely cause</label><input id="trCause"></div><div><label>Suggested check / repair</label><input id="trRepair"></div></div><div class="actions"><button class="primary">Save note</button></div></form></div><div class="panel"><div class="tablewrap"><table><thead><tr><th>Vehicle</th><th>Symptom</th><th>Likely cause</th><th>Suggested check</th></tr></thead><tbody id="troubleRows"></tbody></table></div></div></section>
+<section id="settings" class="view"><h1>Workspace & account</h1><div class="panel"><h2>Workshop information</h2><label>Workshop name</label><input id="settingsName" placeholder="Your workshop"><div class="actions"><button class="primary" id="saveSettings">Save workshop name</button><button class="light" id="refresh">Refresh records</button><button class="danger" id="signOut">Sign out</button></div><p id="settingsMsg" class="muted"></p></div><div class="panel"><h2>Connection status</h2><p id="connectionStatus" class="muted">Not connected</p></div></section>
+</main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script>
+(()=>{
+"use strict";
+const $=id=>document.getElementById(id);
+const money=n=>"₦"+Number(n||0).toLocaleString("en-NG",{minimumFractionDigits:2,maximumFractionDigits:2});
+const today=()=>new Date().toISOString().slice(0,10);
+["jobDate","invDate"].forEach(id=>$(id).value=today());
+const cfg=window.KAYTECHAUTO_CONFIG||window.APP_CONFIG||{};
+const url=cfg.SUPABASE_URL||cfg.supabaseUrl||cfg.url;
+const key=cfg.SUPABASE_ANON_KEY||cfg.SUPABASE_PUBLISHABLE_KEY||cfg.supabaseKey||cfg.anonKey||cfg.key;
+let db=null,user=null,workspace=null,records={jobs:[],customers:[],stock:[],invoices:[],troubles:[]};
+const msg=(id,s,cls="muted")=>{const e=$(id);e.textContent=s;e.className=cls};t
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function connect(){if(!url||!key||!window.supabase){msg("authMsg","Supabase config is missing. Set up config.js first.","error");return false}db=window.supabase.createClient(url,key);$("connectionStatus").textContent="Supabase client initialised";return true}
+function showApp(){ $("auth").classList.add("hidden");$("app").classList.remove("hidden");$("userArea").textContent=user?.email||""; }
+function showAuth(){ $("app").classList.add("hidden");$("auth").classList.remove("hidden");$("userArea").textContent=""; }
+$("showSignup").onclick=()=>{$("signupFields").classList.remove("hidden");$("showSignup").classList.add("hidden");$("signIn").classList.add("hidden");$("signUp").classList.remove("hidden")};
+$("signIn").onclick=async()=>{if(!connect())return;msg("authMsg","Signing in…");const {data,error}=await db.auth.signInWithPassword({email:$("email").value,password:$("password").value});if(error)return msg("authMsg",error.message,"error");user=data.user;await start()};
+$("signUp").onclick=async()=>{if(!connect())return;const email=$("email").value,password=$("password").value;if(password.length<8)return msg("authMsg","Use a password of at least 8 characters.","error");msg("authMsg","Creating account…");const {data,error}=await db.auth.signUp({email,password,options:{data:{workshop_name:$("workshopName").value.trim()}}});if(error)return msg("authMsg",error.message,"error");if(!data.session)return msg("authMsg","Account created. Check your email to confirm, then return and sign in.","success");user=data.user;await start()};
+$("signOut").onclick=async()=>{await db.auth.signOut();user=null;workspace=null;showAuth()};
+async function start(){showApp();await loadAll()}
+async function loadAll(){if(!db||!user)return;msg("settingsMsg","Loading workshop records…");try{const names=["jobs","customers","stock","invoices"];for(const n of names){const {data,error}=await db.from(n).select("*").order("created_at",{ascending:false}).limit(500);if(error)throw error;records[n]=data||[]}const {data:profile,error:pe}=await db.from("profiles").select("*").eq("id",user.id).maybeSingle();if(pe)throw pe;workspace=profile?.workspace_id||null;$("settingsName").value=profile?.workshop_name||profile?.full_name||"";msg("settingsMsg","Records loaded.","success");msg("connectionStatus","Connected to Supabase. Signed in as "+user.email,"success");render()}catch(e){msg("settingsMsg","Could not load records: "+e.message,"error")}}
+async function insert(table,row){if(!db||!user)return alert("Please sign in first.");const {error}=await db.from(table).insert(row);if(error){alert("Could not save: "+error.message);return false}await loadAll();return true}
+function render(){const active=records.jobs.filter(j=>!["Completed","Delivered"].includes(j.status));$("countJobs").textContent=records.jobs.length;$("countActive").textContent=active.length;$("countCustomers").textContent=records.customers.length;$("countStock").textContent=records.stock.length;
+const jobRows=records.jobs.map(j=>`<tr><td>${esc(j.job_number||j.id)}</td><td>${esc(j.customer_name||"")}<br>${esc(j.vehicle||j.vehicle_model||"")}</td><td>${esc(j.complaint||"")}</td><td><span class="status">${esc(j.status||"Received")}</span></td><td>${esc(j.registration||"")}</td></tr>`).join("");
+$("jobsRows").innerHTML=jobRows||'<tr><td colspan="5">No jobs yet.</td></tr>';$("recent").innerHTML=jobRows?`<div class="tablewrap"><table><tbody>${jobRows.slice(0,5)}</tbody></table></div>`:"No jobs recorded yet.";
+$("customersRows").innerHTML=records.customers.map(c=>`<tr><td>${esc(c.name)}</td><td>${esc(c.phone)}</td><td>${esc(c.email)}</td><td>${esc(c.address)}</td></tr>`).join("")||'<tr><td colspan="4">No customers yet.</td></tr>';
+$("stockRows").innerHTML=records.stock.map(s=>`<tr><td>${esc(s.name||s.part_name)}</td><td>${esc(s.sku||"")}</td><td>${esc(s.quantity??0)}</td><td>${money(s.cost_price)}</td><td>${money(s.selling_price)}</td><td>${esc(s.supplier||"")}</td></tr>`).join("")||'<tr><td colspan="6">No stock items yet.</td></tr>';
+$("invoicesRows").innerHTML=records.invoices.map(i=>{const total=Number(i.total??i.total_amount??0),paid=Number(i.amount_paid??0);return `<tr><td>${esc(i.invoice_number||i.id)}</td><td>${esc(i.customer_name||"")}</td><td>${esc(i.invoice_date||"")}</td><td>${money(total)}</td><td>${money(paid)}</td><td>${money(total-paid)}</td></tr>`}).join("")||'<tr><td colspan="6">No invoices yet.</td></tr>';
+const total=records.invoices.reduce((a,i)=>a+Number(i.total??i.total_amount??0),0),paid=records.invoices.reduce((a,i)=>a+Number(i.amount_paid||0),0);$("reportTotal").textContent=money(total);$("reportPaid").textContent=money(paid);$("reportBalance").textContent=money(total-paid);
+const counts={};records.jobs.forEach(j=>counts[j.status||"Received"]=(counts[j.status||"Received"]||0)+1);$("statusSummary").innerHTML=Object.entries(counts).map(([k,v])=>`<p>${esc(k)}: <b>${v}</b></p>`).join("")||"No jobs yet."}
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));b.classList.add("active");$(b.dataset.view).classList.add("active")});
+$('jobDate').value=new Date().toISOString().slice(0,10);
+
+$('jobForm').onsubmit=async e=>{
+e.preventDefault();
+let row={
+job_no:$('jobNo').value,
+received_date:$('jobDate').value,
+customer_name:$('jobCustomer').value,
+customer_phone:$('jobPhone').value,
+vehicle:$('jobVehicle').value,
+registration:$('jobReg').value,
+odometer:Number($('jobOdo').value||0),
+technician:$('jobTech').value,
+status:$('jobStatus').value,
+complaint:$('jobComplaint').value,
+findings:$('jobFindings').value,
+work_performed:$('jobWork').value
+};
+let {error}=await sb.from('jobs').insert(row);
+if(error)alert(error.message);
+else{e.target.reset();$('jobDate').value=new Date().toISOString().slice(0,10);await refresh()}
+};
+
+$('customerForm').onsubmit=async e=>{
+e.preventDefault();
+let {error}=await sb.from('customers').insert({
+name:$('custName').value,
+phone:$('custPhone').value,
+email:$('custEmail').value,
+address:$('custAddress').value
+});
+if(error)alert(error.message);
+else{e.target.reset();await refresh()}
+};
+
+$('stockForm').onsubmit=async e=>{
+e.preventDefault();
+let {error}=await sb.from('stock').insert({
+name:$('partName').value,
+sku:$('partSku').value,
+quantity:Number($('partQty').value),
+reorder_level:Number($('partMin').value),
+cost_price:Number($('partCost').value),
+selling_price:Number($('partPrice').value)
+});
+if(error)alert(error.message);
+else{e.target.reset();await refresh()}
+};
+
+$('invoiceForm').onsubmit=async e=>{
+e.preventDefault();
+let j=cache.jobs.find(x=>x.id===$('invJob').value);
+if(!j)return;
+let labour=+$('invLabour').value;
+let parts=+$('invParts').value;
+let other=+$('invOther').value;
+let discount=+$('invDiscount').value;
+let total=Math.max(0,labour+parts+other-discount);
+let paid=Math.min(total,+$('invPaid').value);
+let {error}=await sb.from('invoices').insert({
+invoice_no:$('invNo').value,
+job_id:j.id,
+customer_name:j.customer_name,
+labour,parts,other_charges:other,discount,total,amount_paid:paid
+});
+if(error)alert(error.message);
+else{e.target.reset();await refresh()}
+};
+
+window.updateJobStatus=async id=>{
+let status=prompt('New status: Received, In Progress, Awaiting Parts, Awaiting Inspection, Completed, Delivered');
+if(!status)return;
+let allowed=['Received','In Progress','Awaiting Parts','Awaiting Inspection','Completed','Delivered'];
+if(!allowed.includes(status)){alert('Choose one of the listed statuses.');return}
+let {error}=await sb.from('jobs').update({status}).eq('id',id);
+if(error)alert(error.message);
+else await refresh()
+};
+
+window.adjustStock=async(id,qty)=>{
+let n=prompt('Enter new stock quantity:',qty);
+if(n===null||n===''||Number(n)<0||!Number.isFinite(Number(n)))return;
+let {error}=await sb.from('stock').update({quantity:Number(n)}).eq('id',id);
+if(error)alert(error.message);
+else await refresh()
+};
+
+$('saveWorkspace').onclick=async()=>{
+let {error}=await sb.from('workshops').update({
+name:$('wsName').value,
+phone:$('wsPhone').value,
+address:$('wsAddress').value
+}).eq('id',workspace.id);
+say('workspaceMsg',error?.message||'Workshop details saved.',error?'error':'success');
+if(!error)workspace.name=$('wsName').value
+};
+
+$('inviteMember').onclick=async()=>{
+let email=$('inviteEmail').value.trim().toLowerCase();
+if(!email){alert('Enter a staff email.');return}
+let {data,error}=await sb.rpc('add_workspace_member',{
+member_email:email,
+member_role:$('inviteRole').value
+});
+if(error)alert(error.message);
+else{
+alert('Member added to this workspace. They may need to sign out and sign back in.');
+$('inviteEmail').value='';
+await loadMembers()
+}
+};
+
+async function loadMembers(){
+let {data,error}=await sb.from('profiles').select('id,email,role').eq('workspace_id',workspace.id);
+$('memberRows').innerHTML=error?`<p class="error">${esc(error.message)}</p>`:(data||[]).map(m=>`<p>${esc(m.email)} · <b>${esc(m.role)}</b>${m.id===user.id?' (you)':''}</p>`).join('')
+}
+
+const diagnosticGuides={
+'no-start':['Check battery state of charge and terminal condition.','Check fuses, starter circuit and engine ground connections.','Listen for fuel pump prime; verify fuel level and fuel pressure safely.','Scan for fault codes and check crankshaft/camshaft signal data.','Check ignition and compression only with suitable equipment.'],
+overheat:['Check coolant level only when the engine is completely cold.','Inspect for leaks, damaged hoses and radiator blockage.','Verify cooling fan operation and thermostat function.','Test radiator cap and cooling-system pressure with the correct tool.','Check for combustion gases in coolant if symptoms indicate internal leakage.'],
+brakes:['Inspect pad/shoe thickness and rotor/drum condition.','Check for leaks, damaged hoses and fluid level/condition.','Inspect calipers, slides, wheel cylinders and parking brake.','Measure rotor runout/thickness against manufacturer specifications.','Do not road-test if braking is unsafe; repair and verify before release.'],
+battery:['Load-test the battery and inspect age/condition.','Clean and tighten battery terminals and main grounds.','Measure charging voltage under specified operating conditions.','Check parasitic draw after vehicle modules enter sleep mode.','Inspect alternator wiring and belt condition.'],
+misfire:['Scan and record codes plus freeze-frame data.','Inspect plugs, coils, leads and connectors.','Check intake leaks and fuel trims.','Test fuel pressure/injector operation as specified.','Perform compression or leak-down testing if needed.'],
+ac:['Confirm blower operation and cabin filter condition.','Check compressor command, fuses and belt where fitted.','Measure vent temperature and system pressures using approved equipment.','Inspect condenser airflow and cooling fans.','Do not vent refrigerant; use certified recovery/recharge equipment.'],
+charging:['Inspect alternator belt, wiring, grounds and battery terminals.','Test battery condition first.','Measure alternator output under load to manufacturer specification.','Check charging-system fuses and voltage drop.','Scan for charging-system and battery-management faults.'],
+noise:['Ask when the noise occurs: braking, turning, bumps or speed.','Inspect tyres, wheel fasteners and visible suspension components.','Check ball joints, bushes, links, dampers and steering joints.','Inspect wheel bearings and brake hardware as appropriate.','Do not drive if a wheel, steering or suspension component may be unsafe.']
+};
+
+$('diagnose').onclick=()=>{
+const labels={
+'no-start':'Engine will not start',
+overheat:'Engine overheating',
+brakes:'Brake noise or poor braking',
+battery:'Battery repeatedly goes flat',
+misfire:'Rough idle / engine misfire',
+ac:'Air conditioning not cooling',
+charging:'Charging system warning',
+noise:'Unusual suspension or steering noise'
+};
+const k=$('symptom').value;
+$('diagnosis').innerHTML='<b>'+labels[k]+'</b><ol>'+diagnosticGuides[k].map(x=>'<li>'+esc(x)+'</li>').join('')+'</ol><small>Checklist only — not a confirmed diagnosis. Follow the vehicle maker’s service procedures.</small>'
+};
+
+$('printReport').onclick=()=>window.print();
+init();
+})();
+
+</script>
+</body>
+</html>
