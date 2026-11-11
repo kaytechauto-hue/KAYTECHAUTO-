@@ -49,7 +49,7 @@ const $=id=>document.getElementById(id);
 const money=n=>"₦"+Number(n||0).toLocaleString("en-NG",{minimumFractionDigits:2,maximumFractionDigits:2});
 const today=()=>new Date().toISOString().slice(0,10);
 ["jobDate","invDate"].forEach(id=>$(id).value=today());
-const cfg=window.KAYTECHAUTO_CONFIG||window.APP_CONFIG||{};
+const cfg=window.KAYTECH_CONFIG||window.KAYTECHAUTO_CONFIG||window.APP_CONFIG||{};
 const url=cfg.SUPABASE_URL||cfg.supabaseUrl||cfg.url;
 const key=cfg.SUPABASE_ANON_KEY||cfg.SUPABASE_PUBLISHABLE_KEY||cfg.supabaseKey||cfg.anonKey||cfg.key;
 let db=null,user=null,workspace=null,records={jobs:[],customers:[],stock:[],invoices:[],troubles:[]};
