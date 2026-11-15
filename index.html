@@ -53,7 +53,7 @@ const cfg=window.KAYTECH_CONFIG||window.KAYTECHAUTO_CONFIG||window.APP_CONFIG||{
 const url=cfg.SUPABASE_URL||cfg.supabaseUrl||cfg.url;
 const key=cfg.SUPABASE_ANON_KEY||cfg.SUPABASE_PUBLISHABLE_KEY||cfg.supabaseKey||cfg.anonKey||cfg.key;
 let db=null,user=null,workspace=null,records={jobs:[],customers:[],stock:[],invoices:[],troubles:[]};
-const msg=(id,s,cls="muted")=>{const e=$(id);e.textContent=s;e.className=cls};t
+const msg=(id,s,cls="muted")=>{const e=$(id);e.textContent=s;e.className=cls};
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function connect(){if(!url||!key||!window.supabase){msg("authMsg","Supabase config is missing. Set up config.js first.","error");return false}db=window.supabase.createClient(url,key);$("connectionStatus").textContent="Supabase client initialised";return true}
 function showApp(){ $("auth").classList.add("hidden");$("app").classList.remove("hidden");$("userArea").textContent=user?.email||""; }
